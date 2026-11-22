@@ -42,7 +42,7 @@ body {
 .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .brand-palm { width: 30px; height: 30px; color: var(--rawdah); }
 .nav:not(.solid) .brand-palm { color: var(--saffron-2); }
-.brand-name { font-family: var(--f-display); font-size: 1.45rem; font-weight: 600; letter-spacing: -.01em; }
+.brand-name { font-family: var(--f-display); font-size: 1.45rem; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; }
 .brand-ar { font-size: 1.1rem; opacity: .7; }
 .nav-links { display: flex; gap: 4px; margin-inline-start: auto; }
 .nav-links a { text-decoration: none; padding: 8px 14px; border-radius: 999px; font-weight: 500; font-size: .95rem; transition: background .25s; }
@@ -328,6 +328,12 @@ section { position: relative; }
 @media (max-width: 600px) {
   .nav { inset: 10px 10px auto; padding: 8px 8px 8px 14px; gap: 10px; }
   .brand-ar, .cart-btn > span { display: none; }
+  .brand-name { font-size: 1.15rem; }
+  .brand-palm { display: none; }
+  .brand { gap: 6px; }
+  .nav { gap: 6px; padding: 6px 6px 6px 12px; }
+  .lang-switch button { min-width: 30px; padding: 0 7px; }
+  .cart-btn, html[lang="ur"] .cart-btn { padding: 8px 10px; gap: 6px; }
   .hero { padding: 110px 16px 90px; }
   .shop, .journey, .cities { padding-left: 16px; padding-right: 16px; }
   .sec-head { flex-direction: column; gap: 6px; }

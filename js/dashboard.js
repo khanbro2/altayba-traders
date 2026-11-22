@@ -322,14 +322,14 @@
     ['deliveryFee', 'freeOver', 'codFee'].forEach((k) => { data.settings[k] = Math.max(0, Number(f[k].value) || 0); });
     ['pickup', 'payCod', 'payBank', 'payStc', 'payLink'].forEach((k) => { data.settings[k] = f[k].checked; });
     if (!data.settings.payCod && !data.settings.payBank && !data.settings.payStc && !data.settings.payLink) data.settings.payCod = true;
-    if (!data.settings.name) data.settings.name = 'Nakhla';
+    if (!data.settings.name) data.settings.name = 'Altayba Traders';
     if (!data.settings.currency) data.settings.currency = 'SAR';
     commit('Settings saved');
   });
   $('#exportBtn').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `nakhla-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.href = URL.createObjectURL(blob); a.download = `altayba-backup-${new Date().toISOString().slice(0, 10)}.json`;
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
   $('#importFile').addEventListener('change', (e) => {
@@ -339,7 +339,7 @@
       if (!Array.isArray(d.products) || !Array.isArray(d.categories)) throw new Error('bad');
       data = { settings: Object.assign(NK.defaults().settings, d.settings || {}), categories: d.categories, products: d.products };
       commit('Backup restored');
-    }).catch(() => toast('That file is not a Nakhla backup'));
+    }).catch(() => toast('That file is not an Altayba Traders backup'));
   });
   $('#resetBtn').addEventListener('click', (e) => {
     const b = e.currentTarget;

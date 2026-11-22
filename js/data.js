@@ -18,8 +18,8 @@ const NK = (() => {
 
   const defaults = () => ({
     settings: {
-      name: 'Nakhla',
-      arabic: 'نخلة',
+      name: 'Altayba Traders',
+      arabic: 'الطيبة',
       tagline: 'Dates of Al-Madinah Al-Munawwarah',
       whatsapp: '966500000000',
       currency: 'SAR',
@@ -30,7 +30,7 @@ const NK = (() => {
       pickup: true,
       // payment methods
       payCod: true, codFee: 0,
-      payBank: false, bankName: 'Al Rajhi Bank', accountTitle: 'Nakhla Dates Est.', iban: 'SA00 0000 0000 0000 0000 0000',
+      payBank: false, bankName: 'Al Rajhi Bank', accountTitle: 'Altayba Traders', iban: 'SA00 0000 0000 0000 0000 0000',
       payStc: false, stcNumber: '0500000000',
       payLink: false,
       payVersion: 2, // bump to re-apply payment defaults to saved shops
@@ -71,6 +71,8 @@ const NK = (() => {
             if (src) ['nameUr', 'nameAr'].forEach((k) => { if (c[k] === undefined) c[k] = src[k]; });
           });
           if (hadVersion !== 2) Object.assign(d.settings, { payCod: true, payBank: false, payStc: false, payLink: false, payVersion: 2 });
+          // brand rename: shops still on the old demo name get the client's name
+          if (d.settings.name === 'Nakhla') Object.assign(d.settings, { name: 'Altayba Traders', arabic: 'الطيبة' });
           return d;
         }
       }
