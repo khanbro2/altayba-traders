@@ -1,0 +1,159 @@
+/* Nakhla — shared tokens. Palette pulled from the food itself:
+   date syrup, toasted sesame, saffron, pistachio and the green of the Rawdah dome. */
+:root {
+  --dibs: #1d110b;          /* date syrup — deepest */
+  --dibs-2: #2b1910;
+  --cocoa: #4a2a1b;
+  --tahini: #f3e6d1;        /* page background */
+  --tahini-2: #ead8bc;
+  --sesame: #d9bf96;
+  --saffron: #e3a63b;
+  --saffron-2: #f4cd7c;
+  --pomegranate: #a8382b;
+  --pistachio: #8fae6a;
+  --rawdah: #23624a;        /* green dome */
+  --rawdah-2: #174634;
+  --ink: #2a1810;
+  --ink-soft: #6d5341;
+  --line: rgba(74, 42, 27, .16);
+
+  --f-display: 'Fraunces', Georgia, serif;
+  --f-body: 'Figtree', system-ui, sans-serif;
+  --f-arabic: 'Reem Kufi', 'Amiri', serif;
+
+  --r-lg: 22px;
+  --r-md: 14px;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  font-family: var(--f-body);
+  color: var(--ink);
+  background: var(--tahini);
+  line-height: 1.55;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+.ar { font-family: var(--f-arabic); direction: rtl; }
+
+/* Ajwa date cursor */
+html.fairy-on, html.fairy-on * { cursor: none !important; }
+.fairy {
+  position: fixed; left: 0; top: 0; z-index: 10000; pointer-events: none;
+  width: 72px; height: 72px; opacity: 0; transition: opacity .3s;
+  will-change: transform; filter: drop-shadow(0 5px 7px rgba(29, 17, 11, .35));
+}
+.fairy.show { opacity: 1; }
+/* scale/rotate around the tip (the click point) so it never drifts off target */
+.fairy svg { display: block; overflow: visible; transform-origin: 33% 38%; transition: transform .3s var(--ease-out); }
+.fairy.hover svg { transform: scale(1.15); }
+.fairy.tap svg { transform: scale(.86); }
+.fairy .c-glow { transform-box: fill-box; transform-origin: center; opacity: .5; animation: glow 2s ease-in-out infinite; }
+.fairy.hover .c-glow { opacity: 1; }
+.fairy .c-twinkle { transform-box: fill-box; transform-origin: center; animation: twinkle 1.6s ease-in-out infinite; }
+@keyframes glow { 50% { transform: scale(.82); } }
+@keyframes twinkle { 0%, 100% { transform: scale(.3) rotate(0); opacity: .2; } 50% { transform: scale(1.1) rotate(45deg); opacity: 1; } }
+.fairy-dust { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 900;
+  transform: translate(-50%, calc(100% + 60px)); opacity: 0; transition: transform .5s var(--ease-out), opacity .3s;
+  background: var(--dibs); color: var(--tahini); padding: 12px 20px; border-radius: 999px;
+  box-shadow: 0 12px 30px rgba(29, 17, 11, .35); font-weight: 500; font-size: .95rem;
+  display: flex; gap: 10px; align-items: center; max-width: calc(100vw - 32px);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+.toast::before { content: '✦'; color: var(--saffron); }
+
+/* ================= Languages ================= */
+/* Language switcher (EN | اردو | عربي) */
+.lang-switch {
+  display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  direction: ltr; flex: none;
+}
+.lang-switch button {
+  height: 30px; min-width: 38px; padding: 0 10px; border: 0; border-radius: 999px; background: none; color: inherit;
+  display: grid; place-items: center; font: 600 .8rem/1 'Figtree', system-ui, sans-serif; opacity: .72;
+  transition: background .25s, color .25s, opacity .25s;
+}
+.lang-switch button[lang="ur"] { font: 500 .8rem/1 'Noto Nastaliq Urdu', serif; padding-bottom: 4px; }
+.lang-switch button[lang="ar"] { font: 600 .86rem/1 'Noto Naskh Arabic', serif; }
+.lang-switch button:hover { opacity: 1; }
+.lang-switch button.on { background: var(--saffron); color: var(--dibs); opacity: 1; }
+
+/* Fonts per language */
+html[lang="ur"] { --f-display: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --f-body: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; }
+html[lang="ar"] { --f-display: 'Amiri', 'Noto Naskh Arabic', serif; --f-body: 'Noto Naskh Arabic', 'Amiri', serif; }
+html[lang="ur"] body { line-height: 2.05; }
+html[lang="ar"] body { line-height: 1.75; }
+/* Arabic script must never be letter-spaced (it breaks the joins) and has no italics */
+html[dir="rtl"] *, html[dir="rtl"] *::before, html[dir="rtl"] *::after { letter-spacing: 0 !important; }
+html[dir="rtl"] em, html[dir="rtl"] i { font-style: normal !important; }
+html[dir="rtl"] .eyebrow, html[dir="rtl"] .kicker { text-transform: none; }
+/* Brand name, prices and big numbers stay in the Latin display face in every language */
+.brand-name, .foot-brand, .co-brand > span:first-child, .sec-num, .cart-count,
+.dcard-price b, .dcard-price s, .total-row b, .facts b, .sum-rows .grand dd, .order-no b, .stat-v {
+  font-family: 'Fraunces', Georgia, serif;
+}
+/* Phone / email boxes stay left-to-right but sit on the right in RTL pages */
+html[dir="rtl"] input[dir="ltr"] { text-align: right; }
+.latin { font-family: 'Fraunces', Georgia, serif; direction: ltr; }
+/* +/− quantity controls use the Latin face so the symbols sit centred in every language */
+.qty button, .qty span { font-family: 'Figtree', system-ui, sans-serif; line-height: 1; }
+
+/* ================= Floating WhatsApp button ================= */
+.wa-float {
+  position: fixed; bottom: 24px; inset-inline-end: 24px; z-index: 150;
+  display: flex; align-items: center; gap: 12px; text-decoration: none;
+  transition: opacity .3s, transform .4s var(--ease-out);
+  animation: waIn .8s 1s var(--ease-out) both;
+}
+@keyframes waIn { from { opacity: 0; transform: translateY(30px) scale(.6); } }
+.wa-btn {
+  position: relative; width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: #fff;
+  background: radial-gradient(circle at 35% 30%, #4be07f, #25d366 45%, #128c4b);
+  box-shadow: 0 0 0 3px var(--tahini), 0 0 0 5px rgba(227, 166, 59, .75), 0 14px 30px -8px rgba(18, 140, 75, .65);
+  transition: transform .35s var(--ease-out), box-shadow .35s;
+}
+.wa-btn::before, .wa-btn::after { /* soft rings pulsing outward */
+  content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid #25d366; opacity: 0;
+  animation: waRing 2.8s ease-out infinite;
+}
+.wa-btn::after { animation-delay: 1.4s; }
+@keyframes waRing { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.8); opacity: 0; } }
+.wa-btn svg { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .2)); transition: transform .35s var(--ease-out); }
+.wa-float:hover .wa-btn { transform: translateY(-3px) scale(1.06); box-shadow: 0 0 0 3px var(--tahini), 0 0 0 5px var(--saffron), 0 18px 34px -8px rgba(18, 140, 75, .75); }
+.wa-float:hover .wa-btn svg { transform: rotate(-12deg); }
+.wa-float:active .wa-btn { transform: scale(.94); }
+.wa-tip {
+  order: -1; white-space: nowrap; background: var(--dibs); color: var(--tahini); font: 600 .9rem var(--f-body);
+  padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(244, 205, 124, .55); box-shadow: 0 10px 24px -10px rgba(29, 17, 11, .6), 0 0 0 3px rgba(243, 230, 209, .35);
+  opacity: 0; transform: translateX(10px); pointer-events: none; transition: opacity .3s, transform .4s var(--ease-out);
+}
+html[dir="rtl"] .wa-tip { transform: translateX(-10px); }
+html[lang="ur"] .wa-tip { line-height: 1.9; padding: 4px 16px 8px; }
+.wa-float:hover .wa-tip, .wa-float:focus-visible .wa-tip, .wa-float.peek .wa-tip { opacity: 1; transform: none; }
+.wa-float:focus-visible { outline: none; }
+.wa-float:focus-visible .wa-btn { box-shadow: 0 0 0 3px var(--tahini), 0 0 0 6px var(--dibs); }
+/* step aside while the basket drawer is open */
+.drawer.open ~ .wa-float { opacity: 0; pointer-events: none; transform: scale(.7); }
+@media (max-width: 600px) {
+  .wa-float { bottom: 16px; inset-inline-end: 16px; }
+  .wa-btn { width: 54px; height: 54px; }
+  .wa-tip { display: none; }
+}
+@media print { .wa-float { display: none; } }

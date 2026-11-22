@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nakhla Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..800,50;1,9..144,300..800,50&family=Figtree:wght@400;500;600;700&family=Reem+Kufi:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css?v=13">
+  <link rel="stylesheet" href="css/dashboard.css?v=13">
+</head>
+<body>
+  <aside class="side">
+    <a class="side-brand" href="index.html">
+      <span class="ar">نخلة</span>
+      <b data-bind="name">Nakhla</b>
+      <small>Store dashboard</small>
+    </a>
+    <nav class="side-nav" id="sideNav">
+      <button class="active" data-tab="overview"><i>◈</i> Overview</button>
+      <button data-tab="orders"><i>◎</i> Orders <b class="nbadge" id="newBadge" hidden>0</b></button>
+      <button data-tab="products"><i>❖</i> Products</button>
+      <button data-tab="categories"><i>✦</i> Categories</button>
+      <button data-tab="settings"><i>⚙</i> Settings</button>
+    </nav>
+    <a class="side-store" href="index.html" target="_blank">View store ↗</a>
+  </aside>
+
+  <main class="main">
+    <!-- Overview -->
+    <section class="tab active" id="tab-overview">
+      <header class="top"><div><p class="kicker">Assalamu alaikum</p><h1>Today at the shop</h1></div>
+        <button class="btn primary" data-goto="products" data-new>＋ New product</button></header>
+      <div class="stats" id="stats"></div>
+      <div class="two">
+        <div class="panel">
+          <h2>Stock by category</h2>
+          <div id="catBars" class="bars"></div>
+        </div>
+        <div class="panel">
+          <h2>Latest orders</h2>
+          <ul id="recentList" class="low"></ul>
+          <h2 style="margin-top:22px">Running low</h2>
+          <ul id="lowList" class="low"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Orders -->
+    <section class="tab" id="tab-orders">
+      <header class="top"><div><p class="kicker">Sales</p><h1>Orders</h1></div></header>
+      <div class="toolbar">
+        <input id="oSearch" type="search" placeholder="Search order no, name or phone…" aria-label="Search orders">
+        <div class="seg" id="oFilter" role="tablist">
+          <button class="on" data-st="all">All</button><button data-st="new">New</button><button data-st="confirmed">Confirmed</button>
+          <button data-st="shipped">Shipped</button><button data-st="delivered">Delivered</button><button data-st="cancelled">Cancelled</button>
+        </div>
+      </div>
+      <div id="oList" class="orders"></div>
+    </section>
+
+    <!-- Products -->
+    <section class="tab" id="tab-products">
+      <header class="top"><div><p class="kicker">Catalogue</p><h1>Products &amp; prices</h1></div>
+        <button class="btn primary" id="newProduct">＋ New product</button></header>
+      <div class="toolbar">
+        <input id="pSearch" type="search" placeholder="Search products…" aria-label="Search products">
+        <select id="pFilter" aria-label="Filter by category"></select>
+      </div>
+      <div class="panel flush">
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+            <tbody id="pRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="tab" id="tab-categories">
+      <header class="top"><div><p class="kicker">Organise</p><h1>Categories</h1></div></header>
+      <form class="panel cat-form" id="catForm">
+        <input id="catName" placeholder="New category, e.g. Ramadan Packs" required maxlength="40" aria-label="Category name">
+        <button class="btn primary">Add category</button>
+      </form>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+    <!-- Settings -->
+    <section class="tab" id="tab-settings">
+      <header class="top"><div><p class="kicker">Shop details</p><h1>Settings</h1></div></header>
+      <form class="panel form" id="setForm">
+        <div class="row2">
+          <label>Store name<input name="name" required></label>
+          <label>Arabic name<input name="arabic" dir="rtl"></label>
+        </div>
+        <label>Tagline<input name="tagline"></label>
+        <div class="row2">
+          <label>WhatsApp number (with country code)<input name="whatsapp" inputmode="tel" placeholder="9665XXXXXXXX"></label>
+          <label>Currency<input name="currency" maxlength="5"></label>
+        </div>
+        <label>Address<input name="address"></label>
+
+        <h2 class="form-h">Delivery</h2>
+        <div class="row3">
+          <label>Delivery fee<input name="deliveryFee" type="number" min="0" step="1"></label>
+          <label><span>Free delivery over <small>(0 = never)</small></span><input name="freeOver" type="number" min="0" step="1"></label>
+          <label class="check"><input type="checkbox" name="pickup"> Allow shop pickup</label>
+        </div>
+
+        <h2 class="form-h">Payment methods</h2>
+        <p class="muted small">Only ticked methods are shown to customers at checkout. Unticked ones stay saved here — tick them again any time.</p>
+        <div class="paybox">
+          <label class="check"><input type="checkbox" name="payCod"> Cash on Delivery</label>
+          <label><span>Extra COD fee <small>(0 = none)</small></span><input name="codFee" type="number" min="0" step="1"></label>
+        </div>
+        <div class="paybox">
+          <label class="check"><input type="checkbox" name="payBank"> Bank transfer</label>
+          <div class="row3">
+            <label>Bank name<input name="bankName"></label>
+            <label>Account title<input name="accountTitle"></label>
+            <label>IBAN<input name="iban"></label>
+          </div>
+        </div>
+        <div class="paybox">
+          <label class="check"><input type="checkbox" name="payStc"> STC Pay</label>
+          <label>STC Pay number<input name="stcNumber" inputmode="tel"></label>
+        </div>
+        <div class="paybox">
+          <label class="check"><input type="checkbox" name="payLink"> Card / Mada / Apple Pay via payment link</label>
+          <p class="muted small">Customer gets a secure link from you on WhatsApp (e.g. from your bank, Moyasar, Tap or HyperPay merchant app). No card details are typed on this website.</p>
+        </div>
+        <div class="actions"><button class="btn primary">Save settings</button></div>
+      </form>
+      <div class="panel form">
+        <h2>Backup</h2>
+        <p class="muted">Everything is saved in this browser. Download a backup to move it to another computer.</p>
+        <div class="actions left">
+          <button class="btn" id="exportBtn">Download backup</button>
+          <label class="btn">Restore backup<input type="file" id="importFile" accept="application/json" hidden></label>
+          <button class="btn danger" id="resetBtn">Reset to sample data</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Product editor -->
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-scrim" data-close></div>
+    <form class="modal-card" id="pForm" novalidate>
+      <header><h2 id="pFormTitle">New product</h2><button type="button" class="x" data-close aria-label="Close">✕</button></header>
+      <div class="modal-body">
+        <div class="preview">
+          <div class="preview-arch" id="pPreview"></div>
+          <label class="btn small">Upload photo<input type="file" id="pFile" accept="image/*" hidden></label>
+          <button type="button" class="link" id="pClearImg">Remove photo</button>
+        </div>
+        <div class="fields">
+          <div class="row2">
+            <label>Name<input name="name" required maxlength="40"></label>
+            <label>Arabic name <small>(عربي)</small><input name="arabic" dir="rtl" maxlength="40"></label>
+          </div>
+          <div class="row2">
+            <label>Urdu name <small>(اردو)</small><input name="urdu" dir="rtl" maxlength="40"></label>
+            <span></span>
+          </div>
+          <div class="row2">
+            <label>Category<select name="categoryId" id="pCat" required></select></label>
+            <label>Pack size<input name="unit" placeholder="1 kg"></label>
+          </div>
+          <div class="row3">
+            <label>Price<input name="price" type="number" min="0" step="0.5" required></label>
+            <label><span>Old price <small>(optional)</small></span><input name="oldPrice" type="number" min="0" step="0.5"></label>
+            <label>Stock<input name="stock" type="number" min="0" step="1" required></label>
+          </div>
+          <div class="row2">
+            <label><span>Badge <small>(optional)</small></span><input name="badge" maxlength="18" placeholder="Most loved"></label>
+            <label>Colour if no photo<select name="palette" id="pPal"></select></label>
+          </div>
+          <label><span>Photo URL <small>(or upload)</small></span><input name="image" id="pImage" placeholder="images/ajwa.jpg or https://…"></label>
+          <label>Description <small>(English)</small><textarea name="desc" rows="3" maxlength="180"></textarea></label>
+          <div class="row2">
+            <label>Description <small>(اردو)</small><textarea name="descUr" dir="rtl" rows="3" maxlength="180"></textarea></label>
+            <label>Description <small>(عربي)</small><textarea name="descAr" dir="rtl" rows="3" maxlength="180"></textarea></label>
+          </div>
+          <p class="muted small">Leave Urdu/Arabic empty and the store shows the English text in that language.</p>
+        </div>
+      </div>
+      <footer><button type="button" class="btn" data-close>Cancel</button><button class="btn primary">Save product</button></footer>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js?v=13"></script>
+  <script src="js/fairy.js?v=13"></script>
+  <script src="js/dashboard.js?v=13"></script>
+</body>
+</html>

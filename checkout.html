@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nakhla Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..800,50;1,9..144,300..800,50&family=Figtree:wght@400;500;600;700&family=Reem+Kufi:wght@400..700&family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400..700&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/base.css?v=16">
+  <link rel="stylesheet" href="css/checkout.css?v=16">
+  <script src="js/i18n.js?v=16"></script>
+</head>
+<body>
+  <header class="co-top">
+    <a href="index.html" class="co-back" data-i18n="co.back">← Back to the shop</a>
+    <a href="index.html" class="co-brand"><span data-bind="name">Nakhla</span> <span class="ar" data-bind="arabic">نخلة</span></a>
+    <ol class="co-steps" id="steps">
+      <li class="on" data-i18n="co.step1">Basket</li><li class="on" data-i18n="co.step2">Details</li><li id="stepDone" data-i18n="co.step3">Confirmed</li>
+    </ol>
+    <div class="lang-switch"></div>
+  </header>
+
+  <!-- ===== Checkout form ===== -->
+  <main class="co" id="coView">
+    <form class="co-form" id="coForm" novalidate>
+      <h1 class="co-title" data-i18n-html="co.title">Almost <em>there</em></h1>
+
+      <!-- 1. Contact -->
+      <fieldset class="co-card">
+        <legend><span class="n">1</span> <span data-i18n="co.sec1">Your details</span></legend>
+        <div class="grid2">
+          <label class="f"><span data-i18n="co.name">Full name</span><input name="name" autocomplete="name" required maxlength="60"><em class="err" data-i18n="co.name.err">Please enter your name</em></label>
+          <label class="f"><span data-i18n="co.phone">Mobile number</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="05X XXX XXXX" required dir="ltr"><em class="err" data-i18n="co.phone.err">Enter a valid mobile number</em></label>
+        </div>
+        <label class="f"><span data-i18n-html="co.email">Email <small>(optional, for the receipt)</small></span><input name="email" type="email" autocomplete="email" dir="ltr"><em class="err" data-i18n="co.email.err">That email doesn’t look right</em></label>
+      </fieldset>
+
+      <!-- 2. Delivery -->
+      <fieldset class="co-card">
+        <legend><span class="n">2</span> <span data-i18n="co.sec2">Delivery</span></legend>
+        <div class="opts" id="deliveryOpts">
+          <label class="opt">
+            <input type="radio" name="delivery" value="delivery" checked>
+            <span class="opt-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="7" cy="17.5" r="1.8" fill="var(--tahini)" stroke="currentColor" stroke-width="1.6"/><circle cx="17" cy="17.5" r="1.8" fill="var(--tahini)" stroke="currentColor" stroke-width="1.6"/></svg></span>
+            <span class="opt-t"><b data-i18n="co.home">Home delivery</b><small id="delNote"></small></span>
+            <span class="opt-p" id="delFee"></span>
+          </label>
+          <label class="opt" id="pickupOpt">
+            <input type="radio" name="delivery" value="pickup">
+            <span class="opt-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 10 12 4l8 6v10H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 20v-6h4v6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
+            <span class="opt-t"><b data-i18n="co.pickup">Pick up from the shop</b><small data-bind="address">Quba Road, Al-Madinah</small></span>
+            <span class="opt-p" data-i18n="co.free">Free</span>
+          </label>
+        </div>
+        <div id="addressBlock" class="addr">
+          <div class="grid2">
+            <label class="f"><span data-i18n="co.city">City</span>
+              <select name="city" required>
+                <option value="" data-i18n="co.city.choose">Choose city…</option>
+                <option value="Al-Madinah Al-Munawwarah" data-i18n="city.madinah">Al-Madinah Al-Munawwarah</option>
+                <option value="Makkah Al-Mukarramah" data-i18n="city.makkah">Makkah Al-Mukarramah</option>
+                <option value="Jeddah" data-i18n="city.jeddah">Jeddah</option>
+                <option value="Riyadh" data-i18n="city.riyadh">Riyadh</option>
+                <option value="Dammam" data-i18n="city.dammam">Dammam</option>
+                <option value="Taif" data-i18n="city.taif">Taif</option>
+                <option value="Other city in KSA" data-i18n="city.other">Other city in KSA</option>
+              </select><em class="err" data-i18n="co.city.err">Choose your city</em></label>
+            <label class="f"><span data-i18n="co.district">District</span><input name="district" maxlength="60" data-i18n-ph="co.district.ph" placeholder="e.g. Quba"></label>
+          </div>
+          <label class="f"><span data-i18n="co.address">Street, building &amp; landmark</span><input name="address" required maxlength="160" autocomplete="street-address"><em class="err" data-i18n="co.address.err">We need an address to deliver</em></label>
+        </div>
+        <label class="f"><span data-i18n-html="co.notes">Note for us <small>(optional)</small></span><textarea name="notes" rows="2" maxlength="240" data-i18n-ph="co.notes.ph" placeholder="Gift message, best time to call…"></textarea></label>
+      </fieldset>
+
+      <!-- 3. Payment -->
+      <fieldset class="co-card">
+        <legend><span class="n">3</span> <span data-i18n="co.sec3">Payment</span></legend>
+        <div class="opts pay" id="payOpts"></div>
+        <div class="pay-info" id="payInfo"></div>
+      </fieldset>
+    </form>
+
+    <!-- Summary -->
+    <aside class="sum">
+      <div class="sum-card">
+        <div class="sum-arch" aria-hidden="true"><span class="ar">تمر</span></div>
+        <h2 data-i18n="co.sum">Your order</h2>
+        <div class="sum-items" id="sumItems"></div>
+        <dl class="sum-rows">
+          <div><dt data-i18n="cart.subtotal">Subtotal</dt><dd id="sSub"></dd></div>
+          <div><dt data-i18n="co.delivery">Delivery</dt><dd id="sDel"></dd></div>
+          <div id="sCodRow" hidden><dt data-i18n="co.codFee">Cash on delivery fee</dt><dd id="sCod"></dd></div>
+          <div class="grand"><dt data-i18n="co.total">Total</dt><dd id="sTotal"></dd></div>
+        </dl>
+        <button class="place" id="placeBtn" form="coForm"><span data-i18n="co.place">Place order</span><i aria-hidden="true" data-i18n="co.arrow">→</i></button>
+        <p class="sum-note" data-i18n="co.note">🔒 No card details are entered on this site.</p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Empty basket -->
+  <section class="co-empty" id="emptyView" hidden>
+    <span class="ar">تمر</span>
+    <h1 data-i18n="co.empty.h">Your basket is empty</h1>
+    <p data-i18n="co.empty.p">Pick a few dates first, then come back here.</p>
+    <a href="index.html#shop" class="place inline"><span data-i18n="co.empty.btn">Browse dates</span><i data-i18n="co.arrow">→</i></a>
+  </section>
+
+  <!-- Success -->
+  <section class="done" id="doneView" hidden>
+    <div class="done-seal" aria-hidden="true">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" class="ring"/><path d="M38 62 L53 76 L83 44" class="tick"/></svg>
+    </div>
+    <p class="kicker" data-i18n="done.kicker">JazakAllahu khairan</p>
+    <h1 data-i18n-html="done.title">Your order is <em>placed</em></h1>
+    <p class="order-no"><span data-i18n="done.order">Order</span> <b id="dNo" dir="ltr"></b></p>
+    <div class="done-card" id="dPay"></div>
+    <div class="done-card">
+      <h3 data-i18n="done.last.h">Last step: send it to us</h3>
+      <p data-i18n="done.last.p">Tap below so the order reaches the shop on WhatsApp. We reply to confirm stock and delivery time.</p>
+      <a class="place inline wa" id="dWa" href="#" target="_blank" rel="noopener"><span data-i18n="done.wa">Send order on WhatsApp</span><i data-i18n="co.arrow">→</i></a>
+    </div>
+    <div class="done-card" id="dSummary"></div>
+    <a href="index.html" class="co-back center" data-i18n="done.continue">← Continue shopping</a>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data.js?v=16"></script>
+  <script src="js/fairy.js?v=16"></script>
+  <script src="js/wa-float.js?v=16"></script>
+  <script src="js/checkout.js?v=16"></script>
+</body>
+</html>
