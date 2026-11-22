@@ -226,3 +226,79 @@ input:focus, select:focus, textarea:focus { border-color: var(--saffron) !import
 }
 
 .cat-card .cat-tr { font-family: 'Noto Naskh Arabic', serif; font-size: .95rem; margin-top: 4px; border: 1px dashed var(--line); background: #fffdf8; }
+
+/* ===== Admin login ===== */
+.gate { display: none; }
+html.locked body { overflow: hidden; }
+html.locked .side, html.locked .main, html.locked .modal { display: none !important; }
+html.locked .gate, .gate.leaving {
+  position: fixed; inset: 0; z-index: 400; display: grid; place-items: center; padding: 24px 16px;
+  background: var(--dibs); color: var(--tahini); overflow-y: auto;
+}
+.gate.leaving { animation: gateOut .45s var(--ease-out) forwards; }
+@keyframes gateOut { to { opacity: 0; transform: scale(1.03); } }
+.gate-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(29, 17, 11, .55), rgba(29, 17, 11, .92) 70%), url("../images/madinah-nabawi.jpg") center 30% / cover;
+  filter: saturate(.9);
+}
+.gate-bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(60% 50% at 50% 40%, rgba(227, 166, 59, .18), transparent 70%);
+}
+.gate-card {
+  position: relative; width: min(400px, 100%); display: grid; gap: 14px;
+  padding: 64px 30px 28px; border-radius: 200px 200px 26px 26px;
+  background: linear-gradient(180deg, rgba(43, 25, 16, .82), rgba(29, 17, 11, .94));
+  border: 1px solid rgba(244, 205, 124, .28);
+  box-shadow: 0 0 0 6px rgba(244, 205, 124, .05), 0 40px 80px -30px rgba(0, 0, 0, .8);
+  backdrop-filter: blur(10px);
+  animation: gateIn .7s var(--ease-out) both;
+}
+@keyframes gateIn { from { opacity: 0; transform: translateY(18px); } }
+.gate-arch { text-align: center; margin-bottom: -4px; }
+.gate-arch .ar { font-family: var(--f-arabic); font-size: 2.6rem; color: var(--saffron-2); line-height: 1; text-shadow: 0 0 24px rgba(227, 166, 59, .35); }
+.gate-kicker { margin: 0; text-align: center; font-size: .74rem; letter-spacing: .22em; text-transform: uppercase; color: var(--saffron); }
+.gate-title { margin: -6px 0 0; text-align: center; color: var(--tahini); font-size: 2.1rem; }
+.gate-sub { margin: -6px 0 6px; text-align: center; color: rgba(243, 230, 209, .62); font-size: .92rem; }
+.gate-f { display: grid; gap: 6px; font-size: .84rem; font-weight: 600; color: rgba(243, 230, 209, .8); }
+.gate-f input {
+  width: 100%; font: 500 1rem var(--f-body); color: var(--tahini); padding: 12px 14px; border-radius: 12px;
+  background: rgba(243, 230, 209, .06); border: 1px solid rgba(244, 205, 124, .22); outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.gate-f input:focus { border-color: var(--saffron); box-shadow: 0 0 0 3px rgba(227, 166, 59, .2); }
+.gate-pw { position: relative; display: block; }
+.gate-pw input { padding-right: 64px; }
+.gate-eye {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none;
+  color: var(--saffron-2); font: 600 .78rem var(--f-body); padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+.gate-eye:hover { background: rgba(244, 205, 124, .1); }
+.gate-check { display: flex; align-items: center; gap: 8px; font-size: .86rem; color: rgba(243, 230, 209, .7); }
+.gate-check input { accent-color: var(--saffron); width: 16px; height: 16px; }
+.gate-err { margin: 0; min-height: 1.2em; color: #f08a7c; font-size: .86rem; text-align: center; }
+.gate-btn {
+  display: flex; justify-content: center; align-items: center; gap: 10px; border: 0; border-radius: 999px; padding: 14px;
+  font: 700 1rem var(--f-body); color: var(--dibs); cursor: pointer;
+  background: linear-gradient(180deg, var(--saffron-2), var(--saffron));
+  box-shadow: 0 10px 24px -10px rgba(227, 166, 59, .7);
+  transition: transform .2s var(--ease-out), box-shadow .2s;
+}
+.gate-btn i { font-style: normal; transition: transform .2s var(--ease-out); }
+.gate-btn:hover { transform: translateY(-1px); }
+.gate-btn:hover i { transform: translateX(3px); }
+.gate-btn:disabled { opacity: .6; }
+.gate-back { text-align: center; color: rgba(243, 230, 209, .55); text-decoration: none; font-size: .86rem; }
+.gate-back:hover { color: var(--saffron-2); }
+.gate-card.shake { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.side-logout {
+  position: relative; z-index: 1; margin-top: 8px; padding: 9px 14px; border-radius: 12px; cursor: pointer;
+  background: none; border: 1px solid rgba(243, 230, 209, .14); color: rgba(243, 230, 209, .65); font: 600 .88rem var(--f-body);
+}
+.side-logout:hover { color: var(--tahini); border-color: rgba(244, 205, 124, .4); }
+@media (max-width: 900px) {
+  .side-logout { margin: 0; white-space: nowrap; padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .gate-card, .gate.leaving, .gate-card.shake { animation: none; } }
