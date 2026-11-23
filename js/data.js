@@ -33,23 +33,24 @@ const NK = (() => {
       payBank: false, bankName: 'Al Rajhi Bank', accountTitle: 'Altayba Traders', iban: 'SA00 0000 0000 0000 0000 0000',
       payStc: false, stcNumber: '0500000000',
       payLink: false,
+      catalogVersion: 2, // bump to replace saved products/categories with the default catalog
       payVersion: 2, // bump to re-apply payment defaults to saved shops
     },
     categories: [
       { id: 'c-madinah', name: 'Madinah Special', nameUr: 'مدینہ اسپیشل', nameAr: 'مميزات المدينة' },
       { id: 'c-premium', name: 'Premium Reserve', nameUr: 'پریمیم ریزرو', nameAr: 'المختارات الفاخرة' },
       { id: 'c-soft',    name: 'Soft & Fresh', nameUr: 'نرم اور تازہ', nameAr: 'طرية وطازجة' },
-      { id: 'c-gift',    name: 'Gift Boxes', nameUr: 'گفٹ باکس', nameAr: 'علب الهدايا' },
     ],
     products: [
-      { id: 'p1', name: 'Ajwa Al-Madinah', arabic: 'عجوة المدينة', urdu: 'عجوہ مدینہ', descUr: 'نرم، گہری سیاہ اور ہلکی پھلدار — مدینہ کی پہچان، قبا کے قریب باغوں سے چنی گئی۔', descAr: 'طريّة داكنة بنكهة فاكهية لطيفة — تمرة المدينة، تُقطف من البساتين القريبة من قباء.', categoryId: 'c-madinah', price: 95, oldPrice: 110, unit: '1 kg', stock: 40, palette: 'ajwa', badge: 'Most loved', image: 'images/ajwa.jpg', desc: 'Soft, dark and gently fruity — the date of Madinah, picked from the orchards near Quba.' },
-      { id: 'p2', name: 'Sukkari Mufattal', arabic: 'سكري مفتل', urdu: 'سکری مفتل', descUr: 'سنہری، جھریوں والی اور کیریمل جیسی میٹھی۔ دانت لگتے ہی براؤن شوگر کی طرح گھل جاتی ہے۔', descAr: 'ذهبية متجعدة بحلاوة الكراميل. تتفتت كالسكر البني من أول قضمة.', categoryId: 'c-soft', price: 48, oldPrice: 0, unit: '1 kg', stock: 75, palette: 'sukkari', badge: 'Melts in mouth', image: 'images/sukkari.jpg', desc: 'Golden, crinkled and caramel-sweet. Crumbles like brown sugar the moment you bite.' },
-      { id: 'p3', name: 'Medjool Jumbo', arabic: 'مجدول', urdu: 'مجدول جمبو', descUr: 'بڑی، گودے والی اور ٹافی جیسی۔ مہمانوں کے آنے پر پیش کرنے والی کھجور۔', descAr: 'كبيرة لحمية بطعم التوفي. التمرة التي تقدّمها حين يحلّ الضيوف.', categoryId: 'c-premium', price: 72, oldPrice: 0, unit: '1 kg', stock: 30, palette: 'medjool', badge: '', image: 'images/medjool.jpg', desc: 'Large, fleshy and toffee-like. The one you serve when guests arrive.' },
       { id: 'p4', name: 'Safawi', arabic: 'صفاوي', urdu: 'صفاوی', descUr: 'لمبی، تقریباً سیاہ اور نرم، ہلکے شیرے کے ذائقے کے ساتھ۔', descAr: 'طويلة شبه سوداء وطريّة المضغ، بلمسة دبس هادئة.', categoryId: 'c-madinah', price: 55, oldPrice: 62, unit: '1 kg', stock: 52, palette: 'safawi', badge: '', image: 'images/safawi.jpg', desc: 'Long, almost black and softly chewy, with a quiet molasses finish.' },
+      { id: 'p9', name: 'Amber', arabic: 'عنبرة', urdu: 'عنبر', descUr: 'بڑی، بھری ہوئی اور چمکدار کہربائی — مدینہ کی شاندار کھجوروں میں سے ایک، شہد جیسی نرم مٹھاس کے ساتھ۔', descAr: 'كبيرة ممتلئة بلون كهرماني لامع — من أفخم تمور المدينة، بقضمة عسلية طريّة.', categoryId: 'c-premium', price: 85, oldPrice: 0, unit: '1 kg', stock: 28, palette: 'medjool', badge: 'Best seller', image: 'images/amber.jpg', desc: 'Big, plump and glossy amber — one of the grandest dates of Madinah, with a honeyed, buttery bite.' },
+      { id: 'p3', name: 'Medjool', arabic: 'مجدول', urdu: 'مجدول', descUr: 'بڑی، گودے والی اور ٹافی جیسی۔ مہمانوں کے آنے پر پیش کرنے والی کھجور۔', descAr: 'كبيرة لحمية بطعم التوفي. التمرة التي تقدّمها حين يحلّ الضيوف.', categoryId: 'c-premium', price: 72, oldPrice: 0, unit: '1 kg', stock: 30, palette: 'medjool', badge: '', image: 'images/medjool.jpg', desc: 'Large, fleshy and toffee-like. The one you serve when guests arrive.' },
+      { id: 'p2', name: 'Sukkari', arabic: 'سكري', urdu: 'سکری', descUr: 'سنہری، جھریوں والی اور کیریمل جیسی میٹھی۔ دانت لگتے ہی براؤن شوگر کی طرح گھل جاتی ہے۔', descAr: 'ذهبية متجعدة بحلاوة الكراميل. تتفتت كالسكر البني من أول قضمة.', categoryId: 'c-soft', price: 48, oldPrice: 0, unit: '1 kg', stock: 75, palette: 'sukkari', badge: 'Melts in mouth', image: 'images/sukkari.jpg', desc: 'Golden, crinkled and caramel-sweet. Crumbles like brown sugar at the first bite.' },
+      { id: 'p10', name: 'Rabia Al-Madinah', arabic: 'ربيعة المدينة', urdu: 'ربیعہ مدینہ', descUr: 'گہری سرخی مائل بھوری اور نرم چبانے والی، ہلکی میٹھی — مدینہ کی روزمرہ کی پسندیدہ کھجور۔', descAr: 'بنية مائلة إلى الحمرة، طرية المضغ وحلاوتها معتدلة — مفضّلة أهل المدينة كل يوم.', categoryId: 'c-madinah', price: 38, oldPrice: 0, unit: '1 kg', stock: 90, palette: 'khudri', badge: 'Everyday', image: 'images/rabia.jpg', desc: 'Deep reddish-brown and gently chewy, mildly sweet — a Madinah favourite for every day.' },
       { id: 'p5', name: 'Mabroom', arabic: 'مبروم', urdu: 'مبروم', descUr: 'پتلی اور یاقوتی بھوری، مضبوط چھلکا اور دیر تک رہنے والی مٹھاس۔', descAr: 'نحيلة بلون بني ياقوتي، قشرتها متماسكة وحلاوتها طويلة الأمد.', categoryId: 'c-premium', price: 68, oldPrice: 0, unit: '1 kg', stock: 24, palette: 'mabroom', badge: 'Limited', image: 'images/mabroom.jpg', desc: 'Slender and ruby-brown, firm skin and a long, slow sweetness.' },
-      { id: 'p6', name: 'Khudri', arabic: 'خضري', urdu: 'خضری', descUr: 'مدینہ کے گھروں کی روزمرہ کھجور — متوازن، چبانے والی، قہوہ کے ساتھ بہترین۔', descAr: 'تمرة البيوت المدنية اليومية — متوازنة، طرية المضغ، رفيقة القهوة.', categoryId: 'c-soft', price: 32, oldPrice: 0, unit: '1 kg', stock: 120, palette: 'khudri', badge: 'Everyday', image: 'images/khudri.jpg', desc: 'The everyday date of Madinah homes — balanced, chewy, perfect with qahwa.' },
-      { id: 'p7', name: 'Sagai Royal', arabic: 'صقعي', urdu: 'صقعی رائل', descUr: 'دو رنگی: کرکری سنہری نوک اور نرم کہربائی جسم۔ ذائقے کے شوقین کے لیے۔', descAr: 'بلونين: طرف ذهبي مقرمش وجسم كهرماني طري. لعشّاق القوام.', categoryId: 'c-premium', price: 58, oldPrice: 0, unit: '1 kg', stock: 35, palette: 'sagai', badge: '', image: 'images/sagai.jpg', desc: 'Two-tone: crisp golden tip, soft amber body. A texture lover’s date.' },
-      { id: 'p8', name: 'Rawdah Gift Box', arabic: 'علبة الروضة', urdu: 'روضہ گفٹ باکس', descUr: 'عجوہ، سکری اور مجدول مخملی ڈبے میں، سنہری ربن کے ساتھ۔', descAr: 'عجوة وسكري ومجدول في علبة مبطّنة بالمخمل ومختومة بشريط ذهبي.', categoryId: 'c-gift', price: 185, oldPrice: 210, unit: '1.5 kg box', stock: 18, palette: 'barhi', badge: 'Gift', image: 'images/giftbox.jpg', desc: 'Ajwa, Sukkari and Medjool in a velvet-lined box, sealed with a gold ribbon.' },
+      { id: 'p11', name: 'Mashrooq', arabic: 'مشروق', urdu: 'مشروق', descUr: 'نرم، شہد جیسی بھوری اور ہلکی میٹھی، باریک چھلکے کے ساتھ — مدینہ کے باغوں کی پرانی پہچان۔', descAr: 'طريّة بلون عسلي وحلاوة خفيفة وقشرة رقيقة — من كلاسيكيات مزارع المدينة.', categoryId: 'c-soft', price: 40, oldPrice: 0, unit: '1 kg', stock: 60, palette: 'safawi', badge: '', image: 'images/mashrooq.jpg', desc: 'Soft, honey-brown and lightly sweet, with a tender skin — a classic from the farms of Madinah.' },
+      { id: 'p1', name: 'Ajwa Al-Madinah', arabic: 'عجوة المدينة', urdu: 'عجوہ مدینہ', descUr: 'نرم، گہری سیاہ اور ہلکی پھلدار — مدینہ کی پہچان، قبا کے قریب باغوں سے چنی گئی۔', descAr: 'طريّة داكنة بنكهة فاكهية لطيفة — تمرة المدينة، تُقطف من البساتين القريبة من قباء.', categoryId: 'c-madinah', price: 95, oldPrice: 110, unit: '1 kg', stock: 40, palette: 'ajwa', badge: 'Most loved', image: 'images/ajwa.jpg', desc: 'Soft, dark and gently fruity — the date of Madinah, picked from the orchards near Quba.' },
+      { id: 'p7', name: 'Sagai Al-Madinah', arabic: 'صقعي المدينة', urdu: 'صقعی مدینہ', descUr: 'دو رنگی: کرکری سنہری نوک اور نرم کہربائی جسم۔ ذائقے کے شوقین کے لیے۔', descAr: 'بلونين: طرف ذهبي مقرمش وجسم كهرماني طري. لعشّاق القوام.', categoryId: 'c-madinah', price: 58, oldPrice: 0, unit: '1 kg', stock: 35, palette: 'sagai', badge: '', image: 'images/sagai.jpg', desc: 'Two-tone: crisp golden tip, soft amber body. A texture lover’s date.' },
     ],
   });
 
@@ -60,6 +61,11 @@ const NK = (() => {
         const d = JSON.parse(raw);
         if (d && Array.isArray(d.products) && Array.isArray(d.categories)) {
           const hadVersion = d.settings && d.settings.payVersion;
+          if (!d.settings || d.settings.catalogVersion !== 2) {
+            const fresh = defaults();
+            d.products = fresh.products; d.categories = fresh.categories;
+            d.settings = Object.assign(d.settings || {}, { catalogVersion: 2 });
+          }
           d.settings = Object.assign(defaults().settings, d.settings || {});
           const def = defaults();
           d.products.forEach((p) => {
