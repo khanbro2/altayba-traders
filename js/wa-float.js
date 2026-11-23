@@ -1,5 +1,5 @@
 /* Floating WhatsApp button — uses the shop's number from Dashboard → Settings */
-(() => {
+NK.ready.then(() => {
   const data = NK.load();
   const num = String(data.settings.whatsapp || '').replace(/\D/g, '');
   if (!num) return;
@@ -35,4 +35,4 @@
     a.classList.add('peek');
     setTimeout(() => a.classList.remove('peek'), 4000);
   }, 3500);
-})();
+});

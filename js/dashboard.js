@@ -1,19 +1,27 @@
-/* Dashboard — manage products, prices, categories and shop settings */
+/* Dashboard — manage products, prices, categories, orders and shop settings.
+   Everything is read from and written to the MySQL database through api/admin.php. */
 (() => {
   const $ = (s, r = document) => r.querySelector(s);
-  let data = NK.load();
-  let orders = NK.loadOrders();
+  let data = { settings: NK.defaults().settings, categories: [], products: [] };
+  let orders = [];
   let oStatus = 'all';
   let editingId = null;
   let pendingImage = '';
 
   const cur = () => data.settings.currency || 'SAR';
-  const commit = (msg) => {
-    if (!NK.save(data)) { toast('Could not save — browser storage is full or blocked'); return false; }
-    if (msg) toast(msg);
+  // One door to the server: handles sign-out, errors, and folds fresh data back in
+  async function adm(action, body, okMsg) {
+    const r = await NK.api('admin.php?a=' + action, body);
+    if (r.status === 401) { window.nkSessionExpired && window.nkSessionExpired(); return null; }
+    if (!r.ok) { toast(r.error === 'network' ? 'Cannot reach the server — check your internet' : (r.error || 'Could not save')); renderAll(); return null; }
+    if (r.settings) data.settings = Object.assign(NK.defaults().settings, r.settings);
+    if (r.categories) data.categories = r.categories;
+    if (r.products) data.products = r.products;
+    if (r.orders) orders = r.orders;
+    if (okMsg) toast(okMsg);
     renderAll();
-    return true;
-  };
+    return r;
+  }
 
   /* ---------- Tabs ---------- */
   function go(tab) {
@@ -101,7 +109,6 @@
       </details>`;
     }).join('') : `<div class="panel empty-orders"><span class="ar">طلبات</span><p>${orders.length ? 'No orders match this filter.' : 'No orders yet. When a customer checks out, the order shows up here.'}</p></div>`;
   }
-  const saveOrders = (msg) => { if (!NK.saveOrders(orders)) { toast('Could not save'); return; } toast(msg); renderAll(); };
   $('#oSearch').addEventListener('input', renderOrders);
   $('#oFilter').addEventListener('click', (e) => {
     const b = e.target.closest('[data-st]'); if (!b) return;
@@ -112,17 +119,17 @@
   $('#oList').addEventListener('change', (e) => {
     const sid = e.target.dataset.status, pid = e.target.dataset.paid;
     if (sid) {
-      const o = orders.find((x) => x.id === sid); const was = o.status; const now = e.target.value;
-      // Cancelling puts the dates back on the shelf; un-cancelling takes them off again
-      if ((was === 'cancelled') !== (now === 'cancelled')) {
-        const dir = now === 'cancelled' ? 1 : -1;
-        o.items.forEach((i) => { const p = data.products.find((x) => x.id === i.id); if (p) p.stock = Math.max(0, Number(p.stock) + dir * i.qty); });
-        NK.save(data);
-      }
+      // The server returns stock to the shelf on cancel (and takes it again on un-cancel)
+      const o = orders.find((x) => x.id === sid); const now = e.target.value; const was = o.status;
       o.status = now;
-      saveOrders(now === 'cancelled' ? 'Order cancelled — stock returned' : `Order marked ${STATUS[now].toLowerCase()}`);
+      adm('order_status', { id: sid, status: now }, now === 'cancelled' ? 'Order cancelled — stock returned' : `Order marked ${STATUS[now].toLowerCase()}`)
+        .then((r) => { if (!r) { o.status = was; renderAll(); } });
     }
-    if (pid) { orders.find((x) => x.id === pid).paid = e.target.checked; saveOrders(e.target.checked ? 'Marked as paid' : 'Marked as unpaid'); }
+    if (pid) {
+      const o = orders.find((x) => x.id === pid); const paid = e.target.checked;
+      o.paid = paid;
+      adm('order_paid', { id: pid, paid }, paid ? 'Marked as paid' : 'Marked as unpaid').then((r) => { if (!r) { o.paid = !paid; renderAll(); } });
+    }
   });
   document.addEventListener('click', (e) => { if (e.target.closest('[data-open-orders]')) go('orders'); });
 
@@ -157,8 +164,7 @@
     const id = e.target.dataset.price; if (!id) return;
     const v = Number(e.target.value);
     if (!(v >= 0)) { e.target.value = data.products.find((p) => p.id === id).price; return; }
-    data.products.find((p) => p.id === id).price = v;
-    commit('Price updated');
+    adm('set_price', { id, price: v }, 'Price updated');
   });
   $('#pRows').addEventListener('click', (e) => {
     const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
@@ -166,8 +172,7 @@
     if (del) {
       const b = del;
       if (b.dataset.armed) {
-        data.products = data.products.filter((p) => p.id !== b.dataset.del);
-        commit('Product deleted');
+        adm('delete_product', { id: b.dataset.del }, 'Product deleted');
       } else {
         b.dataset.armed = '1'; b.textContent = 'Sure?';
         setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete'; } }, 2500);
@@ -211,7 +216,7 @@
   form.image.addEventListener('input', () => { pendingImage = ''; updatePreview(); });
   $('#pClearImg').addEventListener('click', () => { pendingImage = ''; form.image.value = ''; updatePreview(); });
 
-  // Uploaded photos are shrunk to ~700px so they fit in browser storage
+  // Uploaded photos are shrunk to ~900px in the browser, then saved as a file on the server
   $('#pFile').addEventListener('change', (e) => {
     const file = e.target.files[0]; e.target.value = '';
     if (!file || !file.type.startsWith('image/')) return;
@@ -219,7 +224,7 @@
     fr.onload = () => {
       const img = new Image();
       img.onload = () => {
-        const s = Math.min(1, 700 / Math.max(img.width, img.height));
+        const s = Math.min(1, 900 / Math.max(img.width, img.height));
         const c = document.createElement('canvas');
         c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
         c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
@@ -232,8 +237,10 @@
     fr.readAsDataURL(file);
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const saveBtn = form.querySelector('.primary');
+    if (saveBtn.disabled) return;
     let ok = true;
     ['name', 'price', 'stock'].forEach((k) => {
       const bad = k === 'name' ? !form[k].value.trim() : !(form[k].value !== '' && Number(form[k].value) >= 0);
@@ -257,13 +264,13 @@
       descUr: form.descUr.value.trim(),
       descAr: form.descAr.value.trim(),
     };
-    const before = JSON.stringify(data.products);
-    if (editingId) data.products = data.products.map((x) => (x.id === editingId ? p : x));
-    else data.products.unshift(p);
-    if (!commit(editingId ? 'Product saved' : 'Product added to the store')) { data.products = JSON.parse(before); return; }
+    saveBtn.disabled = true;
+    const r = await adm('save_product', { product: p, isNew: !editingId }, editingId ? 'Product saved' : 'Product added to the store');
+    saveBtn.disabled = false;
+    if (!r) return;
     closeEditor();
-    const r = form.querySelector('.primary').getBoundingClientRect();
-    window.fairyBurst && window.fairyBurst(r.left + r.width / 2, r.top);
+    const rb = saveBtn.getBoundingClientRect();
+    window.fairyBurst && window.fairyBurst(rb.left + rb.width / 2, rb.top);
   });
 
   /* ---------- Categories ---------- */
@@ -284,9 +291,7 @@
     e.preventDefault();
     const name = $('#catName').value.trim(); if (!name) return;
     if (data.categories.some((c) => c.name.toLowerCase() === name.toLowerCase())) { toast('That category already exists'); return; }
-    data.categories.push({ id: NK.uid('c'), name });
-    $('#catName').value = '';
-    commit(`“${name}” added`);
+    adm('add_category', { name }, `“${name}” added`).then((r) => { if (r) $('#catName').value = ''; });
   });
   $('#catGrid').addEventListener('change', (e) => {
     const id = e.target.dataset.rename; if (!id) return;
@@ -294,7 +299,7 @@
     const v = e.target.value.trim();
     const c = data.categories.find((x) => x.id === id);
     if (field === 'name' && !v) { e.target.value = c.name; return; }
-    c[field] = v; commit('Category saved');
+    adm('update_category', { id, field, value: v }, 'Category saved');
   });
   $('#catGrid').addEventListener('click', (e) => {
     const b = e.target.closest('[data-delcat]'); if (!b) return;
@@ -302,8 +307,7 @@
     const n = data.products.filter((p) => p.categoryId === id).length;
     if (n) { toast(`Move or delete its ${n} product${n === 1 ? '' : 's'} first`); return; }
     if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Sure?'; return; }
-    data.categories = data.categories.filter((c) => c.id !== id);
-    commit('Category deleted');
+    adm('delete_category', { id }, 'Category deleted');
   });
 
   /* ---------- Settings ---------- */
@@ -318,13 +322,11 @@
   $('#setForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const f = e.target;
-    ['name', 'arabic', 'tagline', 'whatsapp', 'currency', 'address', 'bankName', 'accountTitle', 'iban', 'stcNumber'].forEach((k) => { data.settings[k] = f[k].value.trim(); });
-    ['deliveryFee', 'freeOver', 'codFee'].forEach((k) => { data.settings[k] = Math.max(0, Number(f[k].value) || 0); });
-    ['pickup', 'payCod', 'payBank', 'payStc', 'payLink'].forEach((k) => { data.settings[k] = f[k].checked; });
-    if (!data.settings.payCod && !data.settings.payBank && !data.settings.payStc && !data.settings.payLink) data.settings.payCod = true;
-    if (!data.settings.name) data.settings.name = 'Altayba Traders';
-    if (!data.settings.currency) data.settings.currency = 'SAR';
-    commit('Settings saved');
+    const s = {};
+    ['name', 'arabic', 'tagline', 'whatsapp', 'currency', 'address', 'bankName', 'accountTitle', 'iban', 'stcNumber'].forEach((k) => { s[k] = f[k].value.trim(); });
+    ['deliveryFee', 'freeOver', 'codFee'].forEach((k) => { s[k] = Math.max(0, Number(f[k].value) || 0); });
+    ['pickup', 'payCod', 'payBank', 'payStc', 'payLink'].forEach((k) => { s[k] = f[k].checked; });
+    adm('save_settings', { settings: s }, 'Settings saved');
   });
   $('#exportBtn').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -337,15 +339,8 @@
     file.text().then((t) => {
       const d = JSON.parse(t);
       if (!Array.isArray(d.products) || !Array.isArray(d.categories)) throw new Error('bad');
-      data = { settings: Object.assign(NK.defaults().settings, d.settings || {}), categories: d.categories, products: d.products };
-      commit('Backup restored');
+      return adm('import', { settings: d.settings || {}, categories: d.categories, products: d.products }, 'Backup restored');
     }).catch(() => toast('That file is not an Altayba Traders backup'));
-  });
-  $('#resetBtn').addEventListener('click', (e) => {
-    const b = e.currentTarget;
-    if (!b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Click again to reset'; setTimeout(() => { delete b.dataset.armed; b.textContent = 'Reset to sample data'; }, 3000); return; }
-    data = NK.reset(); commit('Sample data restored');
-    delete b.dataset.armed; b.textContent = 'Reset to sample data';
   });
 
   let tt;
@@ -354,15 +349,23 @@
 
   function renderAll() { renderOrders(); renderOverview(); renderProducts(); renderCategories(); renderSettings(); }
 
-  // A customer checking out in another tab -> refresh live
-  addEventListener('storage', (e) => {
-    if (e.key === NK.ORD_KEY || e.key === NK.KEY) {
-      const newer = NK.loadOrders().length > orders.length;
-      data = NK.load(); orders = NK.loadOrders();
-      if ($('#modal').classList.contains('open')) return;
+  // Load everything once the server confirms the sign-in, then check for new orders every 30 seconds
+  let poll = null;
+  document.addEventListener('nk-auth', async () => {
+    await adm('bootstrap');
+    clearInterval(poll);
+    poll = setInterval(async () => {
+      if (document.hidden || $('#modal').classList.contains('open')) return;
+      const r = await NK.api('admin.php?a=orders');
+      if (r.status === 401) { window.nkSessionExpired && window.nkSessionExpired(); return; }
+      if (!r.ok) return;
+      const known = new Set(orders.map((o) => o.id));
+      const fresh = r.orders.filter((o) => !known.has(o.id)).length;
+      orders = r.orders; data.products = r.products;
       renderAll();
-      if (newer) toast('New order received ✦');
-    }
+      if (fresh) toast(fresh === 1 ? 'New order received ✦' : `${fresh} new orders received ✦`);
+    }, 30000);
   });
+  document.addEventListener('nk-signout', () => { clearInterval(poll); orders = []; data.products = []; data.categories = []; renderAll(); });
   renderAll();
 })();

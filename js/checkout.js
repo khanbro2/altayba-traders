@@ -1,5 +1,5 @@
 /* Checkout: details → delivery → payment → order saved + sent on WhatsApp */
-(() => {
+NK.ready.then(() => {
   const $ = (s, r = document) => r.querySelector(s);
   const form = $('#coForm');
   let data = NK.load();
@@ -126,45 +126,48 @@
   });
 
   /* ---------- Place order ---------- */
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const okAll = ['name', 'phone', 'email', 'city', 'address'].map(check).every(Boolean);
     if (!okAll) { const bad = $('.f.bad'); bad && bad.scrollIntoView({ behavior: 'smooth', block: 'center' }); toast(I18N.t('toast.fix')); return; }
-
-    // Re-read stock right now in case the dashboard changed it
-    data = NK.load();
     const ls = lines();
     if (!ls.length) { render(); return; }
-    const short = ls.find((l) => Number(l.qty) > Number(l.stock));
-    if (short) {
-      if (Number(short.stock) <= 0) delete cart[short.id]; else cart[short.id] = Number(short.stock);
-      NK.saveCart(cart); render();
-      toast(Number(short.stock) <= 0 ? I18N.t('toast.soldout', { name: I18N.pName(short) }) : I18N.t('toast.fewLeft', { n: short.stock, name: I18N.pName(short) }));
-      return;
-    }
 
-    const btn = $('#placeBtn'); btn.classList.add('busy');
-    const t = NK.totals(ls, S(), deliveryMethod(), payMethod());
-    const d = new Date();
-    const no = `NK-${String(d.getFullYear()).slice(2)}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const order = {
-      id: no, createdAt: d.toISOString(), status: 'new', currency: cur(),
+    const btn = $('#placeBtn');
+    if (btn.classList.contains('busy')) return;
+    btn.classList.add('busy');
+
+    // The server re-prices from the database, checks stock and reserves it in one go
+    const res = await NK.api('order.php', {
+      cart: Object.fromEntries(ls.map((l) => [l.id, l.qty])),
+      delivery: deliveryMethod(),
+      payment: payMethod() || 'cod',
       customer: {
         name: form.name.value.trim(), phone: form.phone.value.trim(), email: form.email.value.trim(),
-        city: deliveryMethod() === 'pickup' ? '' : form.city.value, district: form.district.value.trim(),
-        address: deliveryMethod() === 'pickup' ? '' : form.address.value.trim(), notes: form.notes.value.trim(),
+        city: form.city.value, district: form.district.value.trim(), address: form.address.value.trim(), notes: form.notes.value.trim(),
       },
-      delivery: deliveryMethod(), payment: payMethod() || 'cod', paid: false,
-      items: ls.map((l) => ({ id: l.id, name: l.name, unit: l.unit, price: Number(l.price), qty: l.qty, image: l.image, palette: l.palette })),
-      subtotal: t.subtotal, deliveryFee: t.delivery, codFee: t.codFee, total: t.total,
-    };
+    });
+    btn.classList.remove('busy');
 
-    // Reserve stock, save order, empty the basket
-    ls.forEach((l) => { const p = data.products.find((x) => x.id === l.id); p.stock = Math.max(0, Number(p.stock) - l.qty); });
-    const orders = NK.loadOrders(); orders.unshift(order);
-    if (!NK.saveOrders(orders) || !NK.save(data)) { btn.classList.remove('busy'); toast(I18N.t('toast.saveFail')); return; }
-    NK.saveCart({});
-    setTimeout(() => showDone(order), 500);
+    if (res.products) { NK.setCatalog({ products: res.products }); data = NK.load(); }
+    if (!res.ok) {
+      if (res.code === 'stock') {
+        const p = data.products.find((x) => x.id === res.id);
+        if (!p || res.stock <= 0) delete cart[res.id]; else cart[res.id] = res.stock;
+        NK.saveCart(cart); render();
+        const name = p ? I18N.pName(p) : '';
+        toast(res.stock <= 0 ? I18N.t('toast.soldout', { name }) : I18N.t('toast.fewLeft', { n: res.stock, name }));
+      } else if (res.field && form[res.field]) {
+        check(res.field); form[res.field].closest('.f')?.classList.add('bad');
+        form[res.field].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast(I18N.t('toast.fix'));
+      } else {
+        toast(I18N.t('toast.saveFail'));
+      }
+      return;
+    }
+    cart = {}; NK.saveCart(cart);
+    setTimeout(() => showDone(res.order), 300);
   });
 
   function waMessage(o) {
@@ -235,4 +238,4 @@
 
   payOptions();
   render();
-})();
+});

@@ -1,5 +1,5 @@
 /* Storefront */
-(() => {
+NK.ready.then(() => {
   const $ = (s, r = document) => r.querySelector(s);
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let data = NK.load();
@@ -252,11 +252,6 @@
   $('#scrim').addEventListener('click', () => openCart(false));
   addEventListener('keydown', (e) => { if (e.key === 'Escape') openCart(false); });
 
-  // Dashboard open in another tab? Pick up its changes live.
-  addEventListener('storage', (e) => {
-    if (e.key === NK.KEY) { data = NK.load(); renderAll(); toast(I18N.t('toast.updated')); }
-  });
-
   I18N.mountSwitchers();
   I18N.apply();
   document.addEventListener('langchange', () => {
@@ -268,4 +263,4 @@
   renderAll();
   scrollFx();
   heroDust();
-})();
+});

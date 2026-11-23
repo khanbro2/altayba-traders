@@ -199,7 +199,7 @@ const I18N = (() => {
     'toast.fix': ['Please fix the highlighted fields', 'براہ کرم نشان زدہ خانے درست کریں', 'يرجى تصحيح الحقول المحددة'],
     'toast.soldout': ['{name} just sold out — removed', '{name} ابھی ختم ہو گئی — نکال دی گئی', 'نفدت {name} للتو — تمت إزالتها'],
     'toast.fewLeft': ['Only {n} {name} left — basket updated', '{name} صرف {n} باقی — ٹوکری اپ ڈیٹ کر دی گئی', 'بقي {n} فقط من {name} — تم تحديث السلة'],
-    'toast.saveFail': ['Could not save the order — browser storage is blocked', 'آرڈر محفوظ نہیں ہو سکا — براؤزر اسٹوریج بند ہے', 'تعذّر حفظ الطلب — تخزين المتصفح محظور'],
+    'toast.saveFail': ['Could not place the order — please check your internet and try again', 'آرڈر نہیں ہو سکا — انٹرنیٹ چیک کر کے دوبارہ کوشش کریں', 'تعذّر إرسال الطلب — تحقّق من الاتصال وحاول مجددًا'],
     'toast.copyFail': ['Copy failed — select it by hand', 'کاپی نہیں ہوا — ہاتھ سے منتخب کریں', 'تعذّر النسخ — حدّده يدويًا'],
 
     /* ---- default shop texts (used only while the owner hasn't changed them) ---- */

@@ -1,35 +1,40 @@
-/* Admin login for the dashboard.
-   Static site, no server: this keeps casual visitors out of the dashboard UI.
-   The password is never stored in plain text — only a SHA-256 hash. */
+/* Admin login for the dashboard — checked by the server (api/admin.php, PHP session + bcrypt).
+   The dashboard stays hidden until the server says this browser is signed in. */
 (() => {
-  const SALT = 'altayba-admin|';
-  const CRED_KEY = 'nakhla_admin_v1';          // {user, hash} after a password change
-  const SESS_KEY = 'nakhla_admin_session';     // session (tab) or remembered (7 days)
-  const LOCK_KEY = 'nakhla_admin_lock';
-  const DEFAULT = { user: 'admin', hash: '5578eff4a82f8ae3a4d3f7ed21fca579cd8712ae8b0341846afd57c8bd5f18b8' };
-  const REMEMBER_MS = 7 * 24 * 3600 * 1000;
-
-  const safe = (fn, fb) => { try { return fn(); } catch { return fb; } };
-  const cred = () => safe(() => JSON.parse(localStorage.getItem(CRED_KEY)), null) || DEFAULT;
-  const hash = async (user, pass) => {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(SALT + user.trim().toLowerCase() + '|' + pass));
-    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  };
-  const readSession = () => safe(() => JSON.parse(sessionStorage.getItem(SESS_KEY) || localStorage.getItem(SESS_KEY)), null);
-  const valid = () => {
-    const s = readSession(), c = cred();
-    return !!s && s.hash === c.hash && s.user === c.user && (!s.exp || s.exp > Date.now());
-  };
-  const startSession = (remember) => {
-    const c = cred();
-    const s = JSON.stringify({ user: c.user, hash: c.hash, exp: remember ? Date.now() + REMEMBER_MS : 0 });
-    safe(() => (remember ? localStorage : sessionStorage).setItem(SESS_KEY, s));
-  };
-  const endSession = () => safe(() => { sessionStorage.removeItem(SESS_KEY); localStorage.removeItem(SESS_KEY); });
-
-  // Decide before the page paints, so the dashboard never flashes
   const root = document.documentElement;
-  if (!valid()) root.classList.add('locked');
+  root.classList.add('locked');
+
+  async function call(action, body) {
+    const opt = { credentials: 'same-origin', cache: 'no-store', headers: {} };
+    if (body !== undefined) {
+      opt.method = 'POST';
+      opt.headers['Content-Type'] = 'application/json';
+      opt.headers['X-Requested-With'] = 'altayba';
+      opt.body = JSON.stringify(body);
+    }
+    try {
+      const r = await fetch('api/admin.php?a=' + action, opt);
+      const j = await r.json();
+      j.status = r.status;
+      return j;
+    } catch (e) { return { ok: false, error: 'Cannot reach the server. Check your internet.' }; }
+  }
+  window.nkAdmin = { call };
+
+  let signedIn = false;
+  function unlock(user) {
+    signedIn = true;
+    root.classList.remove('locked');
+    document.dispatchEvent(new CustomEvent('nk-auth', { detail: { user } }));
+  }
+  function lock() {
+    signedIn = false;
+    root.classList.add('locked');
+    document.dispatchEvent(new CustomEvent('nk-signout'));
+    setTimeout(() => document.querySelector('#gateForm input[name=user]')?.focus(), 60);
+  }
+  // dashboard.js calls this when any request comes back 401 (session expired)
+  window.nkSessionExpired = () => { if (signedIn) { lock(); } };
 
   function buildGate() {
     const g = document.createElement('div');
@@ -63,33 +68,21 @@
 
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const lock = safe(() => JSON.parse(sessionStorage.getItem(LOCK_KEY)), null) || { n: 0, until: 0 };
-      if (lock.until > Date.now()) {
-        err.textContent = `Too many tries. Wait ${Math.ceil((lock.until - Date.now()) / 1000)} seconds.`;
-        return;
-      }
       const user = f.user.value.trim(), pass = f.pass.value;
       if (!user || !pass) { err.textContent = 'Enter your username and password.'; return; }
-      btn.disabled = true;
-      const c = cred();
-      const ok = user.toLowerCase() === c.user && (await hash(user, pass)) === c.hash;
+      btn.disabled = true; err.textContent = '';
+      const r = await call('login', { user, pass, remember: f.remember.checked });
       btn.disabled = false;
-      if (!ok) {
-        lock.n += 1;
-        if (lock.n >= 5) { lock.until = Date.now() + 30000; lock.n = 0; }
-        safe(() => sessionStorage.setItem(LOCK_KEY, JSON.stringify(lock)));
-        err.textContent = lock.until > Date.now() ? 'Too many tries. Wait 30 seconds.' : 'Wrong username or password.';
+      if (!r.ok) {
+        err.textContent = r.error || 'Wrong username or password.';
         f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
         f.pass.select();
         return;
       }
-      safe(() => sessionStorage.removeItem(LOCK_KEY));
-      startSession(f.remember.checked);
-      f.reset(); err.textContent = '';
+      f.reset();
       g.classList.add('leaving');
-      setTimeout(() => { root.classList.remove('locked'); g.classList.remove('leaving'); }, 450);
+      setTimeout(() => { g.classList.remove('leaving'); unlock(r.user); }, 450);
     });
-    if (root.classList.contains('locked')) setTimeout(() => f.user.focus(), 60);
   }
 
   function buildLogout() {
@@ -99,11 +92,7 @@
     b.type = 'button';
     b.className = 'side-logout';
     b.textContent = 'Sign out';
-    b.addEventListener('click', () => {
-      endSession();
-      root.classList.add('locked');
-      document.querySelector('#gateForm input[name=user]')?.focus();
-    });
+    b.addEventListener('click', async () => { await call('logout', {}); lock(); });
     side.after(b);
   }
 
@@ -116,7 +105,7 @@
     p.noValidate = true;
     p.innerHTML = `
       <h2>Admin login</h2>
-      <p class="muted">Change the username and password used to open this dashboard.</p>
+      <p class="muted">Change the username and password used to open this dashboard. Other signed-in devices will be signed out.</p>
       <div class="row2">
         <label>Username<input name="user" autocomplete="username" required autocapitalize="off" spellcheck="false"></label>
         <label>Current password<input name="old" type="password" autocomplete="current-password" required></label>
@@ -127,30 +116,26 @@
       </div>
       <div class="actions left"><button class="btn primary">Update login</button></div>`;
     tab.appendChild(p);
-    p.user.value = cred().user;
+    document.addEventListener('nk-auth', (e) => { p.user.value = e.detail.user || ''; });
 
     p.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const say = (m) => (window.nkToast ? window.nkToast(m) : alert(m));
-      const c = cred();
-      const user = p.user.value.trim().toLowerCase();
-      if ((await hash(c.user, p.old.value)) !== c.hash) return say('Current password is wrong');
-      if (!/^[a-z0-9._-]{3,30}$/.test(user)) return say('Username: 3–30 letters, numbers, dot, dash');
+      const say = (m) => window.nkToast && window.nkToast(m);
       if (p.pass.value.length < 8) return say('New password needs at least 8 characters');
       if (p.pass.value !== p.pass2.value) return say('The two new passwords do not match');
-      const next = { user, hash: await hash(user, p.pass.value) };
-      safe(() => localStorage.setItem(CRED_KEY, JSON.stringify(next)));
-      const remembered = !!safe(() => localStorage.getItem(SESS_KEY), null);
-      endSession(); startSession(remembered);
+      const r = await call('change_password', { user: p.user.value.trim(), old: p.old.value, pass: p.pass.value });
+      if (r.status === 401) return window.nkSessionExpired();
+      if (!r.ok) return say(r.error || 'Could not update the login');
       p.old.value = p.pass.value = p.pass2.value = '';
+      p.user.value = r.user;
       say('Login updated');
     });
   }
 
-  // Another tab signed out or changed the password → lock this one too
-  addEventListener('storage', (e) => {
-    if ((e.key === SESS_KEY || e.key === CRED_KEY) && !valid()) root.classList.add('locked');
+  document.addEventListener('DOMContentLoaded', async () => {
+    buildGate(); buildLogout(); buildPasswordPanel();
+    const r = await call('me');
+    if (r.ok) unlock(r.user);
+    else document.querySelector('#gateForm input[name=user]')?.focus();
   });
-
-  document.addEventListener('DOMContentLoaded', () => { buildGate(); buildLogout(); buildPasswordPanel(); });
 })();

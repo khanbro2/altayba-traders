@@ -1,8 +1,7 @@
-/* Nakhla — shared data layer (store + dashboard both read/write this) */
+/* Altayba Traders — shared data layer. Catalogue + orders live in MySQL (api/*.php);
+   only the basket and the language choice stay in the browser. */
 const NK = (() => {
-  const KEY = 'nakhla_store_v1';
   const CART_KEY = 'nakhla_cart_v1';
-  const ORD_KEY = 'nakhla_orders_v1';
 
   // Colour recipes for the hand-drawn SVG dates: [deep, body, highlight, cap]
   const palettes = {
@@ -33,8 +32,6 @@ const NK = (() => {
       payBank: false, bankName: 'Al Rajhi Bank', accountTitle: 'Altayba Traders', iban: 'SA00 0000 0000 0000 0000 0000',
       payStc: false, stcNumber: '0500000000',
       payLink: false,
-      catalogVersion: 2, // bump to replace saved products/categories with the default catalog
-      payVersion: 2, // bump to re-apply payment defaults to saved shops
     },
     categories: [
       { id: 'c-madinah', name: 'Madinah Special', nameUr: 'مدینہ اسپیشل', nameAr: 'مميزات المدينة' },
@@ -54,57 +51,45 @@ const NK = (() => {
     ],
   });
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        if (d && Array.isArray(d.products) && Array.isArray(d.categories)) {
-          const hadVersion = d.settings && d.settings.payVersion;
-          if (!d.settings || d.settings.catalogVersion !== 2) {
-            const fresh = defaults();
-            d.products = fresh.products; d.categories = fresh.categories;
-            d.settings = Object.assign(d.settings || {}, { catalogVersion: 2 });
-          }
-          d.settings = Object.assign(defaults().settings, d.settings || {});
-          const def = defaults();
-          d.products.forEach((p) => {
-            const src = def.products.find((x) => x.id === p.id);
-            if (src) ['urdu', 'descUr', 'descAr'].forEach((k) => { if (p[k] === undefined) p[k] = src[k]; });
-          });
-          d.categories.forEach((c) => {
-            const src = def.categories.find((x) => x.id === c.id);
-            if (src) ['nameUr', 'nameAr'].forEach((k) => { if (c[k] === undefined) c[k] = src[k]; });
-          });
-          if (hadVersion !== 2) Object.assign(d.settings, { payCod: true, payBank: false, payStc: false, payLink: false, payVersion: 2 });
-          // brand rename: shops still on the old demo name get the client's name
-          if (d.settings.name === 'Nakhla') Object.assign(d.settings, { name: 'Altayba Traders', arabic: 'الطيبة' });
-          return d;
-        }
-      }
-    } catch (e) { /* storage blocked — fall back to defaults */ }
-    return defaults();
+  /* ---------- Server ---------- */
+  let cache = null;
+
+  // JSON call to our PHP API. Writes carry a custom header the server insists on (blocks cross-site forms).
+  async function api(path, body) {
+    const opt = { credentials: 'same-origin', cache: 'no-store', headers: {} };
+    if (body !== undefined) {
+      opt.method = 'POST';
+      opt.headers['Content-Type'] = 'application/json';
+      opt.headers['X-Requested-With'] = 'altayba';
+      opt.body = JSON.stringify(body);
+    }
+    let res, json;
+    try { res = await fetch('api/' + path, opt); json = await res.json(); }
+    catch (e) { return { ok: false, error: 'network', status: 0 }; }
+    if (!json || typeof json !== 'object') return { ok: false, error: 'bad response', status: res.status };
+    json.status = res.status;
+    return json;
   }
 
-  function save(d) {
-    try { localStorage.setItem(KEY, JSON.stringify(d)); return true; }
-    catch (e) { return false; }
-  }
+  // Catalogue for the shop pages. If the API can't be reached (e.g. opened without PHP), show the built-in catalogue.
+  const ready = api('store.php').then((j) => {
+    if (!j.ok) throw new Error(j.error);
+    cache = { settings: Object.assign(defaults().settings, j.settings || {}), categories: j.categories || [], products: j.products || [] };
+  }).catch(() => { cache = defaults(); NK.offline = true; });
 
-  function reset() { try { localStorage.removeItem(KEY); } catch (e) {} return defaults(); }
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  function load() { return clone(cache || defaults()); }
+  function setCatalog(part) {
+    cache = cache || defaults();
+    if (part.settings) cache.settings = Object.assign(defaults().settings, part.settings);
+    if (part.categories) cache.categories = part.categories;
+    if (part.products) cache.products = part.products;
+  }
 
   function loadCart() {
     try { return JSON.parse(localStorage.getItem(CART_KEY)) || {}; } catch (e) { return {}; }
   }
   function saveCart(c) { try { localStorage.setItem(CART_KEY, JSON.stringify(c)); } catch (e) {} }
-
-  /* ---------- Orders (own key, so store & dashboard never overwrite each other) ---------- */
-  function loadOrders() {
-    try { const o = JSON.parse(localStorage.getItem(ORD_KEY)); return Array.isArray(o) ? o : []; } catch (e) { return []; }
-  }
-  function saveOrders(o) {
-    try { localStorage.setItem(ORD_KEY, JSON.stringify(o)); return true; } catch (e) { return false; }
-  }
 
   const payLabels = {
     cod: 'Cash on Delivery',
@@ -177,5 +162,5 @@ const NK = (() => {
     </svg>`;
   }
 
-  return { KEY, ORD_KEY, CART_KEY, palettes, loadOrders, saveOrders, payLabels, totals, defaults, load, save, reset, loadCart, saveCart, uid, esc, money, dateArt };
+  return { CART_KEY, palettes, payLabels, totals, defaults, load, ready, api, setCatalog, loadCart, saveCart, uid, esc, money, dateArt };
 })();

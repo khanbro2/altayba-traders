@@ -1,0 +1,8 @@
+# Only the public API endpoints may run; helpers and setup files stay private
+<FilesMatch "\.php$">
+  Require all granted
+</FilesMatch>
+<FilesMatch "^(_lib\.php|seed\.json|install\.token)$">
+  Require all denied
+</FilesMatch>
+Options -Indexes
